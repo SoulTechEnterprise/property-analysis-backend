@@ -1,0 +1,39 @@
+# Dependências
+node_modules/
+jspm_packages/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Variáveis de Ambiente (SENSÍVEL - NUNCA ENVIAR)
+.env
+.env.test
+.env.production
+.env.local
+
+# Build e Saída
+dist/
+build/
+.cache/
+
+# Testes e Cobertura
+coverage/
+.nyc_output/
+
+# IDEs e Editores
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# TypeScript (Se estiver usando)
+tsconfig.tsbuildinfo
