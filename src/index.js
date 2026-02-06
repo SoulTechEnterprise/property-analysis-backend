@@ -1,18 +1,23 @@
 import Fastify from 'fastify'
+import cors from '@fastify/cors'
 import 'dotenv/config'
 import axios from "axios"
 
 const fastify = Fastify({
-  logger: false
+  logger: true
 })
 
 import { HandleFlex } from './websites/flex.js';
 import { HandleMoradas } from './websites/moradas.js';
 
+await fastify.register(cors, {
+  origin: true
+})
+
 fastify.post('/form', async function (request, reply) {
     const {
-        zip, street, number, district, city,
-        length, width, name, phone
+        zipCode, street, number, neighborhood, city,
+        lotLength, lotWidth, fullName, phone
     } = request.body;
 
     reply.status(200).send({ message: 'Solicitação recebida.' });
@@ -20,8 +25,8 @@ fastify.post('/form', async function (request, reply) {
     (async () => {
         try {
             const [flexData, moradasData] = await Promise.all([
-                HandleFlex(district).catch(() => []),
-                HandleMoradas(district).catch(() => [])
+                HandleFlex(neighborhood).catch(() => []),
+                HandleMoradas(neighborhood).catch(() => [])
             ]);
 
             const calculateAverageSqm = (data) => {
@@ -49,12 +54,12 @@ fastify.post('/form', async function (request, reply) {
             const formatBRL = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
             const cardDescription = `--- DADOS DO CLIENTE ---\n` +
-                `Nome: ${name}\n` +
+                `Nome: ${fullName}\n` +
                 `Telefone: ${phone}\n` +
-                `CEP: ${zip}\n` +
-                `Endereço: ${street}, ${number} - ${district}, ${city}\n` +
-                `Terreno: ${length}m x ${width}m\n\n` +
-                `--- ANÁLISE DE MERCADO (${district}) ---\n` +
+                `CEP: ${zipCode}\n` +
+                `Endereço: ${street}, ${number} - ${neighborhood}, ${city}\n` +
+                `Terreno: ${lotLength}m x ${lotWidth}m\n\n` +
+                `--- ANÁLISE DE MERCADO (${neighborhood}) ---\n` +
                 `Média Flex: ${flexAvg > 0 ? formatBRL(flexAvg) + '/m²' : 'N/A'}\n` +
                 `Média Moradas: ${moradasAvg > 0 ? formatBRL(moradasAvg) + '/m²' : 'N/A'}\n\n` +
                 `MÉDIA GERAL DO BAIRRO: ${generalAvg > 0 ? formatBRL(generalAvg) + '/m²' : 'N/A'}\n` +
@@ -65,19 +70,19 @@ fastify.post('/form', async function (request, reply) {
                     key: process.env.TRELLO_KEY,
                     token: process.env.TRELLO_TOKEN,
                     idList: '698530ebdf7a90320f418e40',
-                    name: `Avaliação: ${name} | ${district}`,
+                    name: `Avaliação: ${fullName} | ${neighborhood}`,
                     desc: cardDescription,
                     pos: 'top'
                 }
             });
 
         } catch (error) {
-            // Error handling remains for stability but without logging
+            // Silently handle error
         }
     })();
 });
 
-fastify.listen({ port: 3000, host: '0.0.0.0' }, function (err) {
+fastify.listen({ port: 3001, host: '0.0.0.0' }, function (err) {
   if (err) {
     process.exit(1)
   }
